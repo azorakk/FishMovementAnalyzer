@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FishMovementAnalyzer", "FishMovementAnalyzer\FishMovementAnalyzer.csproj", "{9E859432-5DA8-48B6-BE4F-5C91B080064A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FishMovementAnalyzerApp", "FishMovementAnalyzerApp\FishMovementAnalyzerApp.csproj", "{C9134C1D-6A1F-47A7-A0B5-80D1150C60C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9E859432-5DA8-48B6-BE4F-5C91B080064A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E859432-5DA8-48B6-BE4F-5C91B080064A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E859432-5DA8-48B6-BE4F-5C91B080064A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E859432-5DA8-48B6-BE4F-5C91B080064A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9134C1D-6A1F-47A7-A0B5-80D1150C60C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9134C1D-6A1F-47A7-A0B5-80D1150C60C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9134C1D-6A1F-47A7-A0B5-80D1150C60C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9134C1D-6A1F-47A7-A0B5-80D1150C60C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
