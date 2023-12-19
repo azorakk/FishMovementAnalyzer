@@ -59,15 +59,5 @@ namespace FishMovementAnalyzerApp.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap family_guy_stewie_griffin_vector_800x566 {
-            get {
-                object obj = ResourceManager.GetObject("family-guy-stewie-griffin-vector-800x566", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
     }
 }
