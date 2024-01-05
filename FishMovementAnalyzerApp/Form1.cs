@@ -1,13 +1,15 @@
-using IronXL;
-using Excel = Microsoft.Office.Interop.Excel;
-using System.Runtime.InteropServices;
+using FishMovementAnalyzerApp.Library.FileHandler;
+using FishMovementAnalyzerApp.Models;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FishMovementAnalyzerApp
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        private readonly IFileHandler _fileHandler;
+        public Form1(IFileHandler fileHandler)
         {
+            _fileHandler = fileHandler;
             InitializeComponent();
             this.AllowDrop = true;
             this.DragAndDrop.DragEnter += new DragEventHandler(DragAndDrop_DragEnter);
@@ -62,7 +64,7 @@ namespace FishMovementAnalyzerApp
 
         private static void AssertFileExtension(string fileExtension)
         {
-            if (fileExtension.CompareTo(".xls") != 0 && fileExtension.CompareTo(".xlsx") != 0)
+            if (fileExtension.CompareTo(".csv") != 0)
             {
                 MessageBox.Show($"Invalid file. Only .xlxs files are allowed",
                     "Multiple file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -75,10 +77,8 @@ namespace FishMovementAnalyzerApp
             DisableDragAndDropBox();
             try
             {
-                WorkBook workBook = WorkBook.Load(filePath);
-                WorkSheet workSheet = workBook.WorkSheets.First();
-                var columnCount = workSheet.ColumnCount;
-                var rowCount = workSheet.RowCount;
+                var fileContent = _fileHandler.ParseCsvFileContentToObject<PlateData>(filePath, PlateValidValueFilter);
+                fileContent = CalculateCycleType(fileContent);
             }
             catch (IOException e)
             {
@@ -86,6 +86,32 @@ namespace FishMovementAnalyzerApp
                     "Failed Loading The File", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw new Exception();
             }
+        }
+
+        private bool PlateValidValueFilter(PlateData data)
+        {
+            return data.An == 0 && data.DataType?.ToLower() == "trackerr" && data.EndTimeInSecond != null;
+        }
+
+        private List<PlateData> CalculateCycleType(List<PlateData> plateData)
+        {
+            plateData = plateData.OrderBy(x => x.StartTimeInSecond).ToList();
+            var cycleDuration = 300;
+            var cycleType = CycleType.Light;
+
+            foreach (var data in plateData)
+            {
+                if (data.EndTimeInSecond > cycleDuration)
+                {
+                    cycleDuration += cycleDuration;
+                    cycleType = cycleType == CycleType.Dark ? CycleType.Light : CycleType.Dark;
+                    data.CycleType = cycleType;
+                }
+
+                data.CycleType = cycleType;
+            }
+
+            return plateData;
         }
 
         void DisableDragAndDropBox()
