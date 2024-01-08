@@ -1,6 +1,6 @@
 ﻿namespace FishMovementAnalyzerApp.Models
 {
-    internal class PlateData
+    internal record PlateData
     {
         /// <summary>
         /// The location of the fish.
@@ -26,11 +26,15 @@
         /// </summary>
         public int? StartTimeInSecond { get; set; }
 
+        public TimeSpan StartTime { get; set; }
+
         /// <summary>
         /// End time in second when the tracking ends.
         /// Based on the file sample the place is in column 7.
         /// </summary>
         public int? EndTimeInSecond { get; set; }
+
+        public TimeSpan EndTime { get; set; }
 
         /// <summary>
         /// Minor movements of the fish in the time period.
@@ -86,6 +90,59 @@
         /// </summary>
         public int? LargeDistance { get; set; }
 
+        public int TotalActivity
+        {
+            get { return Inactivity.GetValueOrDefault(0) + SmallActivity.GetValueOrDefault(0) + LargeActivity.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+
+        public double TotalDistance
+        {
+            get { return InactiveDistance.GetValueOrDefault(0) + SmallDistance.GetValueOrDefault(0) + LargeDistance.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+
+        public double TotalDuration 
+        {
+            get { return InactiveDuration.GetValueOrDefault(0) + SmallDuration.GetValueOrDefault(0) + LargeDuration.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+
+        public int BigActivity
+        {
+            get { return SmallActivity.GetValueOrDefault(0) + LargeActivity.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+
+        public double BigDistance 
+        {
+            get { return SmallDistance.GetValueOrDefault(0) + LargeDistance.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+        public double BigDuration 
+        {
+            get { return SmallDuration.GetValueOrDefault(0) + LargeDuration.GetValueOrDefault(0); }
+            set
+            {
+                _ = value;
+            }
+        }
+
         public CycleType? CycleType { get; set; } = null;
 
         public PlateData()
@@ -99,7 +156,9 @@
             An = GetIntValue(rowValues[4]);
             DataType = rowValues[5];
             StartTimeInSecond = GetIntValue(rowValues[6]);
+            StartTime = TimeSpan.FromSeconds(GetDoubleValue(rowValues[6]).Value);
             EndTimeInSecond = GetIntValue(rowValues[7]);
+            EndTime = TimeSpan.FromSeconds(GetDoubleValue(rowValues[7]).Value);
             Inactivity = GetIntValue(rowValues[11]);
             InactiveDuration = GetDoubleValue(rowValues[12]);
             InactiveDistance = GetDoubleValue(rowValues[13]);
@@ -113,12 +172,12 @@
 
         private int? GetIntValue(string? value)
         {
-            return int.TryParse(value, out var _value) ? _value : (int?)null;
+            return int.TryParse(value, out var _value) ? _value : null;
         }
 
-        private int? GetDoubleValue(string? value)
+        private double? GetDoubleValue(string? value)
         {
-            return int.TryParse(value, out var _value) ? _value : (int?)null;
+            return double.TryParse(value, out var _value) ? Math.Round(_value, 2) : null;
         }
 
     }

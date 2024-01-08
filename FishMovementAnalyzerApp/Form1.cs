@@ -1,6 +1,7 @@
 using FishMovementAnalyzerApp.Library.FileHandler;
 using FishMovementAnalyzerApp.Models;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace FishMovementAnalyzerApp
 {
@@ -79,6 +80,18 @@ namespace FishMovementAnalyzerApp
             {
                 var fileContent = _fileHandler.ParseCsvFileContentToObject<PlateData>(filePath, PlateValidValueFilter);
                 fileContent = CalculateCycleType(fileContent);
+
+                var secondResolution = fileContent;
+                var minuteResolution = fileContent.GroupBy(x => 
+                        new { x.LocationId, TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes, 0) })
+                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
+
+                var fiveResolution = minuteResolution.GroupBy(x =>
+                        new { x.LocationId, TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes - (x.StartTime.Minutes % 5), 0) })
+                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
+
+                var cycleResolution = fiveResolution.GroupBy(x => new { x.LocationId, x.CycleType })
+                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
             }
             catch (IOException e)
             {
@@ -95,23 +108,46 @@ namespace FishMovementAnalyzerApp
 
         private List<PlateData> CalculateCycleType(List<PlateData> plateData)
         {
-            plateData = plateData.OrderBy(x => x.StartTimeInSecond).ToList();
-            var cycleDuration = 300;
-            var cycleType = CycleType.Light;
-
-            foreach (var data in plateData)
-            {
-                if (data.EndTimeInSecond > cycleDuration)
+            var fiveMinuteData = plateData
+                .GroupBy(x =>
+                new { TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes - (x.StartTime.Minutes % 5), 0) })
+                .SelectMany((items, index) => items.Select(c => c with
                 {
-                    cycleDuration += cycleDuration;
-                    cycleType = cycleType == CycleType.Dark ? CycleType.Light : CycleType.Dark;
-                    data.CycleType = cycleType;
-                }
+                    CycleType = (index % 2) != 0 ? CycleType.Dark : CycleType.Light
+                }))
+                .ToList();
 
-                data.CycleType = cycleType;
-            }
+            return fiveMinuteData;
+        }
 
-            return plateData;
+        private PlateData GetPlateDataValueForGroup(List<PlateData> plateDataList)
+        {
+            return new PlateData()
+            {
+                LocationId = plateDataList.FirstOrDefault()?.LocationId,
+                An = plateDataList.FirstOrDefault()?.An,
+                DataType = plateDataList.FirstOrDefault()?.DataType,
+                StartTimeInSecond = plateDataList.FirstOrDefault()?.StartTimeInSecond,
+                StartTime = plateDataList.FirstOrDefault()!.StartTime,
+                EndTimeInSecond = plateDataList.LastOrDefault()?.EndTimeInSecond,
+                EndTime = plateDataList.LastOrDefault()!.EndTime,
+                Inactivity = plateDataList.Sum(v => v.Inactivity),
+                InactiveDuration = plateDataList.Sum(v => v.InactiveDuration),
+                InactiveDistance = plateDataList.Sum(v => v.InactiveDistance),
+                SmallActivity = plateDataList.Sum(v => v.SmallActivity),
+                SmallDuration = plateDataList.Sum(v => v.SmallDuration),
+                SmallDistance = plateDataList.Sum(v => v.SmallDistance),
+                LargeActivity = plateDataList.Sum(v => v.LargeActivity),
+                LargeDuration = plateDataList.Sum(v => v.LargeDuration),
+                LargeDistance = plateDataList.Sum(v => v.LargeDistance),
+                BigActivity = plateDataList.Sum(v => v.BigActivity),
+                BigDistance = plateDataList.Sum(v => v.BigDistance),
+                BigDuration = plateDataList.Sum(v => v.BigDuration),
+                TotalActivity = plateDataList.Sum(v => v.TotalActivity),
+                TotalDistance = plateDataList.Sum(v => v.TotalDistance),
+                TotalDuration = plateDataList.Sum(v => v.TotalDuration),
+                CycleType = plateDataList.FirstOrDefault()?.CycleType
+            };
         }
 
         void DisableDragAndDropBox()
