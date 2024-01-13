@@ -1,17 +1,21 @@
 using FishMovementAnalyzerApp.Library.FileHandler;
-using FishMovementAnalyzerApp.Models;
-using Newtonsoft.Json;
-using System.Text.Json.Serialization;
+using FishMovementAnalyzerApp.Library.FileHandler.Models;
+using System.Data;
 
 namespace FishMovementAnalyzerApp
 {
     public partial class Form1 : Form
     {
         private readonly IFileHandler _fileHandler;
+        private string FileOututName;
+
         public Form1(IFileHandler fileHandler)
         {
             _fileHandler = fileHandler;
             InitializeComponent();
+            progressBar1.Maximum = 100;
+            progressBar1.Step = 1;
+            progressBar1.Value = 0;
             this.AllowDrop = true;
             this.DragAndDrop.DragEnter += new DragEventHandler(DragAndDrop_DragEnter);
             this.DragAndDrop.DragDrop += new DragEventHandler(DragAndDrop_DragDrop);
@@ -67,7 +71,7 @@ namespace FishMovementAnalyzerApp
         {
             if (fileExtension.CompareTo(".csv") != 0)
             {
-                MessageBox.Show($"Invalid file. Only .xlxs files are allowed",
+                MessageBox.Show($"Invalid file. Only .csv files are allowed",
                     "Multiple file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw new ValidationException();
             }
@@ -78,20 +82,37 @@ namespace FishMovementAnalyzerApp
             DisableDragAndDropBox();
             try
             {
+                messagelbl.Text = $"Processing file {Path.GetFileName(filePath)}";
                 var fileContent = _fileHandler.ParseCsvFileContentToObject<PlateData>(filePath, PlateValidValueFilter);
                 fileContent = CalculateCycleType(fileContent);
 
-                var secondResolution = fileContent;
-                var minuteResolution = fileContent.GroupBy(x => 
+                var secondResolution = fileContent.GroupBy(x =>
+                        new { x.LocationId, TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes, x.StartTime.Seconds) })
+                    .Select(x => GetPlateDataValueForGroup<SecondResolutionData>(x.ToList())).OrderBy(x => x.LocationId).ToList();
+                var minuteResolution = fileContent.GroupBy(x =>
                         new { x.LocationId, TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes, 0) })
-                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
+                    .Select(x => GetPlateDataValueForGroup<OneMinuteResolutionData>(x.ToList())).OrderBy(x => x.LocationId).ToList();
 
-                var fiveResolution = minuteResolution.GroupBy(x =>
+                var fiveResolution = fileContent.GroupBy(x =>
                         new { x.LocationId, TimeSpan = new TimeSpan(x.StartTime.Hours, x.StartTime.Minutes - (x.StartTime.Minutes % 5), 0) })
-                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
+                    .Select(x => GetPlateDataValueForGroup<FiveMinuteResolutionData>(x.ToList())).OrderBy(x => x.LocationId).ToList();
 
-                var cycleResolution = fiveResolution.GroupBy(x => new { x.LocationId, x.CycleType })
-                    .Select(x => GetPlateDataValueForGroup(x.ToList())).OrderBy(x => x.LocationId).ToList();
+                var cycleResolution = fileContent.GroupBy(x => new { x.LocationId, x.CycleType })
+                    .Select(x => GetPlateDataValueForGroup<CycleData>(x.ToList())).OrderBy(x => x.LocationId).ToList();
+
+                var outputPath = _fileHandler.GetFileOutputPath(filePath);
+                FileOututName = Path.GetFileName(outputPath);
+
+                ExcelSheets sheets = new()
+                {
+                    SecondResolutionData = secondResolution,
+                    OneMinuteResolutionData = minuteResolution,
+                    FiveMinuteResolutionData = fiveResolution,
+                    CycleData = cycleResolution
+                };
+
+                backgroundWorker.DoWork += (obj, e) => _fileHandler.GenerateExcel(obj, sheets, outputPath);
+                backgroundWorker.RunWorkerAsync();
             }
             catch (IOException e)
             {
@@ -120,9 +141,9 @@ namespace FishMovementAnalyzerApp
             return fiveMinuteData;
         }
 
-        private PlateData GetPlateDataValueForGroup(List<PlateData> plateDataList)
+        private T GetPlateDataValueForGroup<T>(List<PlateData> plateDataList) where T : PlateData, new()
         {
-            return new PlateData()
+            return new T()
             {
                 LocationId = plateDataList.FirstOrDefault()?.LocationId,
                 An = plateDataList.FirstOrDefault()?.An,
@@ -159,6 +180,29 @@ namespace FishMovementAnalyzerApp
         {
             this.DragAndDrop.Visible = true;
 
+        }
+
+        private void backgroundWorker1_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            progressBar1.Value = e.ProgressPercentage;
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            this.messagelbl.Text = $"Finished processing file. Output file {FileOututName}";
+            ActivateDragAndDropBox();
+            Invoke(new Action(() =>
+            {
+                progressBar1.Visible = false;
+            }));
+        }
+
+        private void backgroundWorker1_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            Invoke(new Action(() =>
+            {
+                progressBar1.Visible = true;
+            }));
         }
     }
 

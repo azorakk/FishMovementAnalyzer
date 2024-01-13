@@ -1,6 +1,10 @@
-﻿namespace FishMovementAnalyzerApp.Models
+﻿namespace FishMovementAnalyzerApp.Library.FileHandler.Models
 {
-    internal record PlateData
+    public record SecondResolutionData : PlateData;
+    public record OneMinuteResolutionData : PlateData;
+    public record FiveMinuteResolutionData : PlateData;
+    public record CycleData : PlateData;
+    public record PlateData
     {
         /// <summary>
         /// The location of the fish.
