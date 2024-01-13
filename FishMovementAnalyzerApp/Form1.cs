@@ -13,9 +13,6 @@ namespace FishMovementAnalyzerApp
         {
             _fileHandler = fileHandler;
             InitializeComponent();
-            progressBar1.Maximum = 100;
-            progressBar1.Step = 1;
-            progressBar1.Value = 0;
             this.AllowDrop = true;
             this.DragAndDrop.DragEnter += new DragEventHandler(DragAndDrop_DragEnter);
             this.DragAndDrop.DragDrop += new DragEventHandler(DragAndDrop_DragDrop);

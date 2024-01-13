@@ -164,7 +164,7 @@ namespace FishMovementAnalyzerApp.Library.FileHandler
                     {
                         excelWorkSheet.Cells[j + 2, k + 1] = table.Rows[j]?.ItemArray[k]?.ToString();
                     }
-                    backgroundWorker!.ReportProgress((progressBarCounter * 100) / totalRows);
+                    backgroundWorker!.ReportProgress((progressBarCounter * 1000) / totalRows);
                     progressBarCounter++;
                 }
             }
