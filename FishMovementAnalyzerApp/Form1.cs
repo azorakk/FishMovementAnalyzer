@@ -1,5 +1,6 @@
 using FishMovementAnalyzerApp.Library.FileHandler;
 using FishMovementAnalyzerApp.Library.FileHandler.Models;
+using SixLabors.ImageSharp;
 using System.Data;
 
 namespace FishMovementAnalyzerApp
@@ -7,18 +8,18 @@ namespace FishMovementAnalyzerApp
     public partial class Form1 : Form
     {
         private readonly IFileHandler _fileHandler;
-        private string FileOututName;
 
         public Form1(IFileHandler fileHandler)
         {
             _fileHandler = fileHandler;
             InitializeComponent();
             this.AllowDrop = true;
+            ShowDraAndDropMessage();
             this.DragAndDrop.DragEnter += new DragEventHandler(DragAndDrop_DragEnter);
             this.DragAndDrop.DragDrop += new DragEventHandler(DragAndDrop_DragDrop);
         }
 
-        private void DragAndDrop_DragDrop(object? sender, DragEventArgs e)
+        private async void DragAndDrop_DragDrop(object? sender, DragEventArgs e)
         {
             try
             {
@@ -27,17 +28,20 @@ namespace FishMovementAnalyzerApp
 
                 AssertFileCount(files);
                 AssertFileExtension(Path.GetExtension(filePath)!);
-                GetExcelFile(filePath!);
+                ShowProcessingMessage();
+
+                await Task.Run(() => GetExcelFile(filePath!));
+                ShowDraAndDropMessage();
 
             }
             catch (ValidationException)
             {
-                ActivateDragAndDropBox();
+                ShowDraAndDropMessage();
                 return;
             }
             catch (IOException)
             {
-                ActivateDragAndDropBox();
+                ShowDraAndDropMessage();
                 return;
             }
         }
@@ -66,21 +70,29 @@ namespace FishMovementAnalyzerApp
 
         private static void AssertFileExtension(string fileExtension)
         {
-            if (fileExtension.CompareTo(".csv") != 0)
+            if (fileExtension.CompareTo(".csv") != 0 && fileExtension.CompareTo(".xlsx") != 0)
             {
-                MessageBox.Show($"Invalid file. Only .csv files are allowed",
+                MessageBox.Show($"Invalid file. Only .csv or xlsx files are allowed",
                     "Multiple file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw new ValidationException();
             }
         }
 
-        void GetExcelFile(string filePath)
+        async void GetExcelFile(string filePath)
         {
-            DisableDragAndDropBox();
             try
             {
-                messagelbl.Text = $"Processing file {Path.GetFileName(filePath)}";
-                var fileContent = _fileHandler.ParseCsvFileContentToObject<PlateData>(filePath, PlateValidValueFilter);
+                ShowMessage($"Processing file {Path.GetFileName(filePath)}");
+                List<PlateData> fileContent = new();
+
+                if (Path.GetExtension(filePath).CompareTo(".csv") == 0)
+                {
+                    fileContent = _fileHandler.ParseCsvFileContentToObject<PlateData>(filePath, PlateValidValueFilter);
+                }
+                else
+                {
+                    fileContent = _fileHandler.ReadExcelData(filePath, PlateValidValueFilter);
+                }
                 fileContent = CalculateCycleType(fileContent);
 
                 var secondResolution = fileContent.GroupBy(x =>
@@ -98,7 +110,6 @@ namespace FishMovementAnalyzerApp
                     .Select(x => GetPlateDataValueForGroup<CycleData>(x.ToList())).OrderBy(x => x.LocationId).ToList();
 
                 var outputPath = _fileHandler.GetFileOutputPath(filePath);
-                FileOututName = Path.GetFileName(outputPath);
 
                 ExcelSheets sheets = new()
                 {
@@ -108,8 +119,9 @@ namespace FishMovementAnalyzerApp
                     CycleData = cycleResolution
                 };
 
-                backgroundWorker.DoWork += (obj, e) => _fileHandler.GenerateExcel(obj, sheets, outputPath);
-                backgroundWorker.RunWorkerAsync();
+                await Task.Run(() => _fileHandler.GenerateExcel(sheets, outputPath));
+
+                ShowMessage($"Finished processing file. Output file {Path.GetFileName(outputPath)}");
             }
             catch (IOException e)
             {
@@ -122,6 +134,14 @@ namespace FishMovementAnalyzerApp
         private bool PlateValidValueFilter(PlateData data)
         {
             return data.An == 0 && data.DataType?.ToLower() == "trackerr" && data.EndTimeInSecond != null;
+        }
+
+        private void ShowMessage(string message)
+        {
+            Invoke(new Action(() =>
+            {
+                this.messagelbl.Text = message;
+            }));
         }
 
         private List<PlateData> CalculateCycleType(List<PlateData> plateData)
@@ -168,38 +188,19 @@ namespace FishMovementAnalyzerApp
             };
         }
 
-        void DisableDragAndDropBox()
+        void ShowProcessingMessage()
         {
-            this.DragAndDrop.Visible = false;
-        }
-
-        void ActivateDragAndDropBox()
-        {
-            this.DragAndDrop.Visible = true;
+            this.DragAndDrop.AllowDrop = false;
+            this.DragAndDrop.Text = "Processing ... ";
+            this.DragAndDrop.Image = Properties.Resources.fish_loader;
 
         }
 
-        private void backgroundWorker1_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        void ShowDraAndDropMessage()
         {
-            progressBar1.Value = e.ProgressPercentage;
-        }
-
-        private void backgroundWorker1_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-        {
-            this.messagelbl.Text = $"Finished processing file. Output file {FileOututName}";
-            ActivateDragAndDropBox();
-            Invoke(new Action(() =>
-            {
-                progressBar1.Visible = false;
-            }));
-        }
-
-        private void backgroundWorker1_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
-        {
-            Invoke(new Action(() =>
-            {
-                progressBar1.Visible = true;
-            }));
+            this.DragAndDrop.AllowDrop = true;
+            this.DragAndDrop.Text = "Drag And Drop CSV or XLSX File.";
+            this.DragAndDrop.Image = Properties.Resources.DragAndDrop;
         }
     }
 

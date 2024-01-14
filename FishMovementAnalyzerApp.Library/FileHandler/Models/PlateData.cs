@@ -1,4 +1,6 @@
-﻿namespace FishMovementAnalyzerApp.Library.FileHandler.Models
+﻿using MiniExcelLibs.Attributes;
+
+namespace FishMovementAnalyzerApp.Library.FileHandler.Models
 {
     public record SecondResolutionData : PlateData;
     public record OneMinuteResolutionData : PlateData;
@@ -10,88 +12,116 @@
         /// The location of the fish.
         /// Based on the file sample the place is in column 0.
         /// </summary>
+        [ExcelColumnIndex("A")]
         public string? LocationId { get; set; }
 
         /// <summary>
         /// An is used for filtering.
         /// Based on the file sample the place is in column 4.
         /// </summary>
+        [ExcelColumnIndex("E")]
         public int? An { get; set; }
 
         /// <summary>
         /// DataType is used for filtering.
         /// Based on the file sample the place is in column 5.
         /// </summary>
+        [ExcelColumnIndex("F")]
         public string? DataType { get; set; }
 
         /// <summary>
         /// Start time in second when the tracking starts measuring.
         /// Based on the file sample the place is in column 6.
         /// </summary>
+        [ExcelColumnIndex("G")]
         public int? StartTimeInSecond { get; set; }
 
-        public TimeSpan StartTime { get; set; }
+        public TimeSpan StartTime
+        {
+            get { return TimeSpan.FromSeconds((double)StartTimeInSecond); }
+            set
+            {
+                _ = value;
+            }
+        }
 
         /// <summary>
         /// End time in second when the tracking ends.
         /// Based on the file sample the place is in column 7.
         /// </summary>
+        [ExcelColumnIndex("H")]
         public int? EndTimeInSecond { get; set; }
 
-        public TimeSpan EndTime { get; set; }
+        public TimeSpan EndTime
+        {
+            get { return TimeSpan.FromSeconds((double)EndTimeInSecond); }
+            set
+            {
+                _ = value;
+            }
+        }
 
         /// <summary>
         /// Minor movements of the fish in the time period.
         /// Based on the file sample the place is in column 11.
         /// </summary>
+        [ExcelColumnIndex("L")]
         public int? Inactivity { get; set; }
 
         /// <summary>
         /// Inactive duration of minor movement of the fish.
         /// Based on the file sample the place is in column 12.
         /// </summary>
+        [ExcelColumnIndex("M")]
         public double? InactiveDuration { get; set; }
 
         /// <summary>
         /// Distance moved during minor movement.
         /// Based on the file sample the place is in column 13.
         /// </summary>
+        [ExcelColumnIndex("N")]
         public double? InactiveDistance { get; set; }
 
         /// <summary>
         /// Small movements of the fish in the time period.
         /// Based on the file sample the place is in column 14.
         /// </summary>
+        [ExcelColumnIndex("O")]
         public int? SmallActivity { get; set; }
 
         /// <summary>
         /// Duration of small movement of the fish.
         /// Based on the file sample the place is in column 15.
         /// </summary>
+        [ExcelColumnIndex("P")]
         public double? SmallDuration { get; set; }
 
         /// <summary>
         /// Distance moved during small movement.
         /// Based on the file sample the place is in column 16.
         /// </summary>
+        [ExcelColumnIndex("Q")]
         public double? SmallDistance { get; set; }
 
         /// <summary>
         /// Large movements of the fish in the time period.
         /// Based on the file sample the place is in column 17.
         /// </summary>
+        [ExcelColumnIndex("R")]
         public int? LargeActivity { get; set; }
 
         /// <summary>
         /// Duration of large movement of the fish.
         /// Based on the file sample the place is in column 18.
         /// </summary>
+        [ExcelColumnIndex("S")]
         public int? LargeDuration { get; set; }
 
         /// <summary>
         /// Distance moved during large movement.
         /// Based on the file sample the place is in column 19.
         /// </summary>
+        [ExcelColumnIndex("T")]
         public int? LargeDistance { get; set; }
 
         public int TotalActivity

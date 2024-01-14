@@ -1,10 +1,8 @@
 ﻿using FishMovementAnalyzerApp.Library.FileHandler.Models;
-using System.Collections;
-using System.ComponentModel;
+using MiniExcelLibs;
 using System.Data;
 using System.Reflection;
 using System.Text;
-using Excel = Microsoft.Office.Interop.Excel;
 
 namespace FishMovementAnalyzerApp.Library.FileHandler
 {
@@ -72,6 +70,16 @@ namespace FishMovementAnalyzerApp.Library.FileHandler
             return objects;
         }
 
+        public List<PlateData> ReadExcelData(string filePath, Func<PlateData, bool>? filter = null)
+        {
+            var rows = MiniExcel.Query<PlateData>(filePath).AsQueryable();
+
+            if (filter != null)
+                rows = rows.Where(filter).AsQueryable();
+
+            return rows.ToList();
+        }
+
         private static DataTable ConvertToDataTable<T>(List<T> models)
         {
             // creating a data table instance and typed it as our incoming model   
@@ -103,74 +111,23 @@ namespace FishMovementAnalyzerApp.Library.FileHandler
             return dataTable;
         }
 
-        private static int GetTotalRows(DataTable[] dataTables)
-        {
-            var total = 0;
-            foreach (var data in dataTables)
-            {
-                total += data.Rows.Count;
-            }
-            return total;
-        }
-
-
-        private DataTable[] GetDataTables(ExcelSheets dataResolutions)
-        {
-            var dataSets = new[] {
-                    ConvertToDataTable(dataResolutions.CycleData!),
-                    ConvertToDataTable(dataResolutions.FiveMinuteResolutionData!),
-                    ConvertToDataTable(dataResolutions.OneMinuteResolutionData!),
-                    ConvertToDataTable(dataResolutions.SecondResolutionData!)
-                };
-
-            return dataSets;
-        }
-
         public string GetFileOutputPath(string filePath)
         {
-            var outputPath = Path.GetDirectoryName(filePath) + "\\" + Path.GetFileNameWithoutExtension(filePath) + "_analayzed_" + Ulid.NewUlid() + ".xlsx";
+            var outputPath = Path.GetDirectoryName(filePath) + "\\" + Path.GetFileNameWithoutExtension(filePath) + "_analayzed_" + Guid.NewGuid() + ".xlsx";
             return outputPath!;
         }
 
-        public void GenerateExcel(object sender, ExcelSheets dataResolutions, string path)
+        public void GenerateExcel(ExcelSheets dataResolutions, string path)
         {
-            var dataTables = GetDataTables(dataResolutions);
-            var backgroundWorker = sender as BackgroundWorker;
-            DataSet dataSet = new DataSet();
-            dataSet.Tables.AddRange(dataTables);
-            var totalRows = GetTotalRows(dataTables);
-            var progressBarCounter = 0;
-            // create a excel app along side with workbook and worksheet and give a name to it  
-            Excel.Application excelApp = new Excel.Application();
-            Excel.Workbook excelWorkBook = excelApp.Workbooks.Add();
-            Excel._Worksheet xlWorksheet = (Excel._Worksheet)excelWorkBook.Sheets[1];
-            Excel.Range xlRange = xlWorksheet.UsedRange;
-            foreach (DataTable table in dataSet.Tables)
+            var sheets = new Dictionary<string, object>
             {
-                //Add a new worksheet to workbook with the Datatable name  
-                Excel.Worksheet excelWorkSheet = (Excel.Worksheet)excelWorkBook.Sheets.Add();
-                excelWorkSheet.Name = table.TableName;
+                ["SecondResolutionData"] = dataResolutions.SecondResolutionData!,
+                ["OneMinuteResolutionData"] = dataResolutions.OneMinuteResolutionData!,
+                ["FiveMinuteResolutionData"] = dataResolutions.FiveMinuteResolutionData!,
+                ["CycleData"] = dataResolutions.CycleData!,
 
-                // add all the columns  
-                for (int i = 1; i < table.Columns.Count + 1; i++)
-                {
-                    excelWorkSheet.Cells[1, i] = table.Columns[i - 1].ColumnName;
-                }
-
-                // add all the rows  
-                for (int j = 0; j < table.Rows.Count; j++)
-                {
-                    for (int k = 0; k < table.Columns.Count; k++)
-                    {
-                        excelWorkSheet.Cells[j + 2, k + 1] = table.Rows[j]?.ItemArray[k]?.ToString();
-                    }
-                    backgroundWorker!.ReportProgress((progressBarCounter * 1000) / totalRows);
-                    progressBarCounter++;
-                }
-            }
-            excelWorkBook.SaveAs(path);
-            excelWorkBook.Close();
-            excelApp.Quit();
+            };
+            MiniExcel.SaveAs(path, sheets);
         }
     }
 }
