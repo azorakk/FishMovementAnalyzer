@@ -113,7 +113,7 @@ namespace FishMovementAnalyzerApp.Library.FileHandler
 
         public string GetFileOutputPath(string filePath)
         {
-            var outputPath = Path.GetDirectoryName(filePath) + "\\" + Path.GetFileNameWithoutExtension(filePath) + "_analayzed_" + Guid.NewGuid() + ".xlsx";
+            var outputPath = Path.GetDirectoryName(filePath) + "\\" + Path.GetFileNameWithoutExtension(filePath) + "_analyzed_" + Guid.NewGuid() + ".xlsx";
             return outputPath!;
         }
 
