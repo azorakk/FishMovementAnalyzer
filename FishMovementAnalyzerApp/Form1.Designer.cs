@@ -29,43 +29,43 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.DragAndDrop = new System.Windows.Forms.Label();
-            this.messagelbl = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            DragAndDrop = new Label();
+            messagelbl = new Label();
+            SuspendLayout();
             // 
             // DragAndDrop
             // 
-            this.DragAndDrop.AllowDrop = true;
-            this.DragAndDrop.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.DragAndDrop.Location = new System.Drawing.Point(193, 62);
-            this.DragAndDrop.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
-            this.DragAndDrop.Name = "DragAndDrop";
-            this.DragAndDrop.Padding = new System.Windows.Forms.Padding(0, 0, 0, 13);
-            this.DragAndDrop.Size = new System.Drawing.Size(433, 273);
-            this.DragAndDrop.TabIndex = 0;
-            this.DragAndDrop.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            DragAndDrop.AllowDrop = true;
+            DragAndDrop.ImageAlign = ContentAlignment.BottomCenter;
+            DragAndDrop.Location = new System.Drawing.Point(193, 62);
+            DragAndDrop.Margin = new Padding(0, 0, 3, 0);
+            DragAndDrop.Name = "DragAndDrop";
+            DragAndDrop.Padding = new Padding(0, 0, 0, 13);
+            DragAndDrop.Size = new System.Drawing.Size(433, 273);
+            DragAndDrop.TabIndex = 0;
+            DragAndDrop.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // messagelbl
             // 
-            this.messagelbl.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.messagelbl.Location = new System.Drawing.Point(106, 364);
-            this.messagelbl.Name = "messagelbl";
-            this.messagelbl.Size = new System.Drawing.Size(589, 66);
-            this.messagelbl.TabIndex = 3;
+            messagelbl.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            messagelbl.Location = new System.Drawing.Point(106, 364);
+            messagelbl.Name = "messagelbl";
+            messagelbl.Size = new System.Drawing.Size(589, 66);
+            messagelbl.TabIndex = 3;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(800, 451);
-            this.Controls.Add(this.messagelbl);
-            this.Controls.Add(this.DragAndDrop);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
-            this.Text = "Fish Movement Analyzer";
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = System.Drawing.Color.White;
+            ClientSize = new System.Drawing.Size(800, 553);
+            Controls.Add(messagelbl);
+            Controls.Add(DragAndDrop);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "Form1";
+            Text = "Fish Movement Analyzer";
+            ResumeLayout(false);
         }
 
         #endregion
