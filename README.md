@@ -5,8 +5,8 @@ This program is analyzing locomotion raw data obtained from behavior tracking of
 ## Installation
 For Intalling the software in your computer please download the installers in the Setup folder in this repository.
 
-## Demo
-After installation, open the application and drag and drop your .xlsx file. The analyzed file will appear in the same path of the original file with `original-file-name_analyzed` in the file name.
+## Running
+After installation, open the application and drag and drop your (.csv, .xlsx) file. The analyzed file will appear in the same path of the original file with `original-file-name_analyzed` in the file name.
 
 ## Contribution
 This repository is open to contributions from everyone, and we appreciate your interest in improving this project.
