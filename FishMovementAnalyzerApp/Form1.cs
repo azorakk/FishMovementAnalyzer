@@ -2,6 +2,8 @@ using FishMovementAnalyzerApp.Library.FileHandler;
 using FishMovementAnalyzerApp.Library.FileHandler.Models;
 using SixLabors.ImageSharp;
 using System.Data;
+using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace FishMovementAnalyzerApp
 {
@@ -17,6 +19,7 @@ namespace FishMovementAnalyzerApp
             ShowDraAndDropMessage();
             this.DragAndDrop.DragEnter += new DragEventHandler(DragAndDrop_DragEnter);
             this.DragAndDrop.DragDrop += new DragEventHandler(DragAndDrop_DragDrop);
+            SetupFooter();
         }
 
         private async void DragAndDrop_DragDrop(object? sender, DragEventArgs e)
@@ -201,6 +204,64 @@ namespace FishMovementAnalyzerApp
             this.DragAndDrop.AllowDrop = true;
             this.DragAndDrop.Text = "Drag And Drop CSV or XLSX File.";
             this.DragAndDrop.Image = Properties.Resources.DragAndDrop;
+        }
+
+        private void SetupFooter()
+        {
+            Panel footerPanel = new Panel();
+            footerPanel.Dock = DockStyle.Bottom;
+            footerPanel.BackColor = System.Drawing.Color.LightGray;
+            footerPanel.Height = 40; 
+
+            Label footerLabel = new Label();
+            footerLabel.Text = "Designed And Developed by Azora König Kardgar";
+            footerLabel.Dock = DockStyle.Fill;
+            footerLabel.TextAlign = ContentAlignment.MiddleCenter;
+
+            PictureBox pictureBox = new PictureBox
+            {
+                
+                Width = 50,
+                Height = 50,
+                Image = Properties.Resources.github,
+                SizeMode = PictureBoxSizeMode.AutoSize
+            };
+            pictureBox.Location = new System.Drawing.Point(10, 5);
+
+            pictureBox.Click += PictureBox_Click!;
+            pictureBox.MouseEnter += PictureBox_MouseEnter!;
+            pictureBox.MouseLeave += PictureBox_MouseLeave!;
+
+
+            footerPanel.Controls.Add(pictureBox);
+            footerPanel.Controls.Add(footerLabel);
+
+            this.Controls.Add(footerPanel);
+        }
+        private void PictureBox_MouseEnter(object sender, EventArgs e)
+        {
+            Cursor = Cursors.Hand;
+        }
+
+        private void PictureBox_MouseLeave(object sender, EventArgs e)
+        {
+            Cursor = Cursors.Default;
+        }
+        private void PictureBox_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (Process p = new Process())
+                {
+                    p.StartInfo.FileName = "https://github.com/azorakk/FishMovementAnalyzer";
+                    p.StartInfo.UseShellExecute = true;
+                    p.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error opening URL: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 
